@@ -1,4 +1,4 @@
-'''Class file for jenkins operations'''
+"""Class file for jenkins operations"""
 
 __author__ = "Santosh Sharma"
 __credits__ = "Santosh Sharma"

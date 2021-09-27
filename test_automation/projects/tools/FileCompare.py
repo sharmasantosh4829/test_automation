@@ -17,7 +17,24 @@ import os
 import shutil
 import sys
 import re
-import glob
+
+# Appending root dir (test_automation) and core_lib to sys.path
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+              (os.path.dirname
+               (os.path.abspath(__file__))), os.pardir)), "core_lib"))
+
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+              (os.path.dirname
+               (os.path.abspath(__file__))), os.pardir))))
+
+# core_lib imports
+from core_lib.ArchiveUtility import *
 
 
 class FileCompare:
@@ -31,6 +48,13 @@ class FileCompare:
                (os.path.abspath(__file__))), os.pardir)), "temp")
         if not os.path.exists(self.tmpDir):
             os.mkdir(self.tmpDir)
+
+        self.archiveDir = os.path.join \
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.dirname
+                (os.path.abspath(__file__))), os.pardir)), "archive")
 
         sys.argv[1] = "--"
         file1 = sys.argv[2]
@@ -175,6 +199,8 @@ class FileCompare:
         with open(self.file3, "w") as fobj:
             for line in self.lines:
                 fobj.write(line)
+
+        ArchiveUtility(self.tmpDir, self.archiveDir, run_name="FileCompare")
 
         for filename in os.listdir(self.tmpDir):
             file_path = os.path.join(self.tmpDir, filename)
