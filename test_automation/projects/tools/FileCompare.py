@@ -17,6 +17,7 @@ import os
 import shutil
 import sys
 import re
+import glob
 
 
 class FileCompare:
@@ -174,6 +175,17 @@ class FileCompare:
         with open(self.file3, "w") as fobj:
             for line in self.lines:
                 fobj.write(line)
+
+        for filename in os.listdir(self.tmpDir):
+            file_path = os.path.join(self.tmpDir, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    if not filename.startswith("__init__.py"):
+                        os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
 
     def load_properties(self, filepath, sep='=', comment_char='#'):
         """
