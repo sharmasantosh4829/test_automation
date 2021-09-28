@@ -1,9 +1,10 @@
 """This tool:
-1. Takes two property files of different languages as input.
-2. Compares key-value pairs in both the files.
-3. Removes reduntant key-value pairs.
-4. If key in 1st file found in 2nd, replaces value of key in 2nd by value in 1st file.
-5. Copy line from 1st to 2nd if line not in 2nd."""
+    1. Takes two property files of different languages as input.
+    2. Compares key-value pairs in both the files.
+    3. Removes reduntant key-value pairs.
+    4. If key in 1st file found in 2nd, replaces value of key in 2nd by value in 1st file.
+    5. Copy line from 1st to 2nd if line not in 2nd.
+"""
 
 __author__ = "Santosh Sharma"
 __credits__ = "Santosh Sharma"
