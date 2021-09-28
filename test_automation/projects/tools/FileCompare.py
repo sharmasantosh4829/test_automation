@@ -19,7 +19,7 @@ import shutil
 import sys
 import re
 
-# Appending root dir (test_automation) and core_lib to sys.path
+# Appending root dir (test_automation) and core_lib to sys.path so that it becomes visisble from command-line.
 sys.path.append(os.path.join\
             (os.path.abspath
              (os.path.join
