@@ -9,7 +9,12 @@ __status__ = "Development"
 
 # system imports
 import jenkins
+import xml.etree.ElementTree as ET
 
+def convert_xml_file_to_str(path_to_config_file):
+    tree = ET.parse(path_to_config_file)
+    root = tree.getroot()
+    return ET.tostring(root, encoding='utf8', method='xml').decode()
 
 class JenkinsUtility:
 
@@ -22,6 +27,10 @@ class JenkinsUtility:
         except jenkins.JenkinsException:
             print("Unable to connect. "
                   "\nPlease check username, password and  make sure  jenkins server is running.")
+
+    # def create_job(self, job_name):
+    #     try:
+    #         self.server.create_job()
 
 
 if __name__ == '__main__':
