@@ -91,7 +91,7 @@ class JenkinsUtility:
 
 
 if __name__ == '__main__':
-    jenkins_obj = JenkinsUtility("http://192.168.1.11:8080", "santosh", "Ginni@18")
+    jenkins_obj = JenkinsUtility("", "", "")
     jenkins_obj.create_job("Daily_Build-FileCompareTool", "Daily_Build-FileCompareTool_config.xml")
     jenkins_obj.create_job("Hourly_Build-FileCompareTool", "Hourly_Build-FileCompareTool_config.xml")
     jenkins_obj.create_job("Periodic_Build-FileCompareTool", "Periodic_Build-FileCompareTool_config.xml")
