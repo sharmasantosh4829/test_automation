@@ -1,4 +1,4 @@
-"""Class file for jenkins operations"""
+"""Module for jenkins operations"""
 
 __author__ = "Santosh Sharma"
 __credits__ = "Santosh Sharma"
@@ -8,6 +8,7 @@ __email__ = "ss10011987@gmail.com"
 __status__ = "Development"
 
 # system imports
+import os
 import os.path
 import sys
 import traceback
@@ -16,31 +17,42 @@ import xml.etree.ElementTree as ET
 
 
 def convert_xml_file_to_str(path_to_config_file):
-    tree = ET.parse(path_to_config_file)
-    root = tree.getroot()
-    return ET.tostring(root, encoding='utf8', method='xml').decode()
+    """
+    :param path_to_config_file: Path to config.xml, ''path''
+    :return: string format of xml, ''str''
+    """
+    try:
+        tree = ET.parse(path_to_config_file)
+        root = tree.getroot()
+        return ET.tostring(root, encoding='utf8', method='xml').decode()
+    except:
+        print(str(sys.exc_info()[0]))
+        print(str(sys.exc_info()[1]))
+        print(str(traceback.extract_tb(sys.exc_info()[2])))
+        raise
 
 
 class JenkinsUtility:
 
     def __init__(self, url, username, password, timeout=30):
-        '''Create handle to Jenkins instance.
+        """Create handle to Jenkins instance.
             :param url: URL of Jenkins server, ``str``
             :param username: Server username, ``str``
             :param password: Server password, ``str``
             :param timeout: Server connection timeout in secs (default: 30), ``int``
-        '''
+        """
 
         self.url = url
         self.username = username
         self.password = password
-        self.timeout = timeout
+
+        # Instantiating Jenkins Server
         try:
             self.server = jenkins.Jenkins\
                 (url=self.url,
                  username=self.username,
                  password=self.password,
-                 timeout=self.timeout)
+                 timeout=timeout)
             self.user = self.server.get_whoami()
             self.version = self.server.get_version()
             print('Hello %s from Jenkins %s' % (self.user['fullName'], self.version))
@@ -49,6 +61,10 @@ class JenkinsUtility:
                   "\nPlease check username, password and  make sure  jenkins server is running.")
 
     def create_job(self, job_name, config_filename, jobs_config_dir=None):
+        """:param job_name: Name of the Job which needs to be created, ``str``
+           :param config_filename: None of the job's config.xml file, ``str``
+           :param jobs_config_dir: Jenkins Jobs config files dir(default: jenkins_config), ``str``
+        """
         if jobs_config_dir is None:
             jobs_config_dir = (os.path.join
                                    (os.path.abspath
@@ -58,11 +74,13 @@ class JenkinsUtility:
             try:
                 if not os.path.exists(jobs_config_dir):
                     os.mkdir(jobs_config_dir)
-            except:
+            except jenkins.JenkinsException:
                 print(str(sys.exc_info()[0]))
                 print(str(sys.exc_info()[1]))
                 print(str(traceback.extract_tb(sys.exc_info()[2])))
                 raise
+
+        # Creating a new Jenkins Job
         try:
             jenkins_job_config_file = os.path.join(jobs_config_dir, config_filename)
             config_file_str = convert_xml_file_to_str(jenkins_job_config_file)
@@ -73,7 +91,7 @@ class JenkinsUtility:
 
 
 if __name__ == '__main__':
-    jenkins_obj = JenkinsUtility("", "", "")
+    jenkins_obj = JenkinsUtility("http://192.168.1.11:8080", "santosh", "Ginni@18")
     jenkins_obj.create_job("Daily_Build-FileCompareTool", "Daily_Build-FileCompareTool_config.xml")
     jenkins_obj.create_job("Hourly_Build-FileCompareTool", "Hourly_Build-FileCompareTool_config.xml")
     jenkins_obj.create_job("Periodic_Build-FileCompareTool", "Periodic_Build-FileCompareTool_config.xml")
