@@ -11,6 +11,7 @@ __status__ = "Development"
 import os
 import os.path
 import sys
+import logging
 import traceback
 import jenkins
 import xml.etree.ElementTree as ET
@@ -41,7 +42,6 @@ class JenkinsUtility:
             :param password: Server password, ``str``
             :param timeout: Server connection timeout in secs (default: 30), ``int``
         """
-
         self.url = url
         self.username = username
         self.password = password
@@ -91,7 +91,8 @@ class JenkinsUtility:
 
 
 if __name__ == '__main__':
-    jenkins_obj = JenkinsUtility("", "", "")
-    jenkins_obj.create_job("Daily_Build-FileCompareTool", "Daily_Build-FileCompareTool_config.xml")
-    jenkins_obj.create_job("Hourly_Build-FileCompareTool", "Hourly_Build-FileCompareTool_config.xml")
-    jenkins_obj.create_job("Periodic_Build-FileCompareTool", "Periodic_Build-FileCompareTool_config.xml")
+    pass
+    # jenkins_obj = JenkinsUtility("", "", "")
+    # jenkins_obj.create_job("Daily_Build-FileCompareTool", "Daily_Build-FileCompareTool_config.xml")
+    # jenkins_obj.create_job("Hourly_Build-FileCompareTool", "Hourly_Build-FileCompareTool_config.xml")
+    # jenkins_obj.create_job("Periodic_Build-FileCompareTool", "Periodic_Build-FileCompareTool_config.xml")

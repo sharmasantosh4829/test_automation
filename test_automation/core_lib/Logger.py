@@ -1,4 +1,4 @@
-"""Logger class for logging"""
+"""Logger class which can be implemented by any module for logging"""
 
 import os
 import sys
