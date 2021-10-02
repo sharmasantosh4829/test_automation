@@ -1,55 +1,82 @@
-"""Logger class which can be implemented by any module for logging"""
+""" Generic Logger class which can be implemented by any module for logging"""
 
-import os
-import sys
-import time
-from time import strftime
 import logging
-import traceback
 
 
 class Logger:
 
-    def __init__(self, file_name, logs_dir=None):
-        self.file_name = file_name
-        self.format = "%Y-%m-%d_%H-%M-%S"
-
-        if logs_dir is None:
-            logs_dir = os.path.join(
-                os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)), "logs")
+    def __init__(self, logger_name, level=logging.DEBUG):
+        """Create new logger.
+            :param logger_name: name of new logger, ``str``
+        """
         try:
-            if not os.path.exists(logs_dir):
-                os.mkdir(logs_dir)
+            self.file_handler = None
+            self.stream_handler = None
+            self.logger = logging.getLogger(logger_name)
+            self.logger.setLevel(level)
+        except Exception as e:
+            raise RuntimeError("Unable to create logger") from e
 
-            self.logFilePath = os.path.join(logs_dir, self.file_name)
-        except:
-            print(str(sys.exc_info()[0]))
-            print(str(sys.exc_info()[1]))
-            print(str(traceback.extract_tb(sys.exc_info()[2])))
-            raise
-        logging.basicConfig\
-            (filename=self.file_name,
-             format='%(asctime)s :: %(levelname)s :: %(message)s',
-             level=logging.DEBUG)
+    def create_file_handler(self, file_handler_name):
+        """Create file handler.
+            :param file_handler_name: name of new file handler, ``str``
+        """
+        try:
+            self.file_handler = logging.FileHandler(file_handler_name)
+        except Exception as e:
+            raise RuntimeError("Unable to create file handler") from e
 
-    def _create_msg(self, *messages):
-        logMsg = strftime(self.format) + ": "
-        for m in messages:
-            logMsg += str(m) + " "
-            # print logMsg
-        return logMsg
+    def add_file_handler(self):
+        """add file handler to the logger.
+            :param file_handler_name: name of file handler, ``str``
+        """
+        try:
+            self.logger.addHandler(self.file_handler)
+        except Exception as e:
+            raise RuntimeError("Unable to add file handler") from e
 
-    def critical(self, *messages):
-        logging.critical(self._create_msg(*messages))
+    def create_stream_handler(self):
+        """Create stream handler.
+        """
+        try:
+            self.stream_handler = logging.StreamHandler()
+        except Exception as e:
+            raise RuntimeError("Unable to create stream handler") from e
 
-    def error(self, *messages):
-        logging.error(self._create_msg(*messages))
+    def add_stream_handler(self):
+        """add file handler to the logger.
+        """
+        try:
+            self.logger.addHandler(self.stream_handler)
+        except Exception as e:
+            raise RuntimeError("Unable to add stream handler") from e
 
-    def warning(self, *messages):
-        logging.warning(self._create_msg(*messages))
+    def set_log_format(self, handler):
+        """set the log format of the handler
+            :param handler: name of the handler, ``obj``
+        """
+        formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+        try:
+            handler.setFormatter(formatter)
+        except Exception as e:
+            raise RuntimeError("Unable to set log format") from e
 
-    def info(self, *messages):
-        logging.info(self._create_msg(*messages))
+    def set_log_level_to_handler(self, level=logging.DEBUG):
+        """set the log format of the handler
+            :param handler: name of the handler, default: None, ``obj``
+            :param level: log level, default: debug, ``int``
+        """
+        try:
+            self.file_handler.setLevel(level=logging.ERROR)
+        except Exception as e:
+            raise RuntimeError("Unable to set log level") from e
 
-    def debug(self, *messages):
-        logging.debug(self._create_msg(*messages))
+
+if __name__ == '__main__':
+    custom_logger = Logger('JenkinsUtility')
+    file_handler = custom_logger.create_file_handler('JenkinsUtility.log')
+    custom_logger.set_log_format(file_handler)
+    custom_logger.add_file_handler()
+    custom_logger.create_stream_handler()
+    stream_handler = custom_logger.create_stream_handler()
+    custom_logger.add_stream_handler()
