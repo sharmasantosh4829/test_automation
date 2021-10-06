@@ -6,52 +6,132 @@ import sys
 import traceback
 import logging
 
-# Appending root dir (test_automation), core_lib and logs dirs to sys.path.
-sys.path.append(os.path.join\
-            (os.path.abspath
-             (os.path.join
-              (os.path.dirname
-               (os.path.abspath(__file__)), os.pardir)), "core_lib"))
+# Appending root dir (test_automation), core_lib, constants and logs dirs to sys.path.
 sys.path.append(os.path.join\
             (os.path.abspath
              (os.path.join
               (os.path.dirname
                (os.path.abspath(__file__)), os.pardir))))
 
+from constants.GenericConstants import *
+
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.abspath(__file__)), os.pardir)), CORE_LIB_DIR))
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.abspath(__file__)), os.pardir)), CONSTANTS_DIR))
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.abspath(__file__)), os.pardir)), LOGS_DIR))
+
+# lib imports
+import constants.GenericConstants
+
 
 class Logger:
 
-    def __init__(self, logger_name=None, log_dir=None):
-        """Create new logger.
-            :param logger_name: name of new logger, ``str``
-            :param log_dir: logs directory path, ``abs path``
+    def __init__(self, log_dir=None,
+                       logger_name=None,
+                       handler_name=None,
+                       logger_log_level=constants.GenericConstants.debug,
+                       handler_log_level=constants.GenericConstants.debug,
+                       log_format=log_format):
+        """Initialize the logger class.
+            :param log_dir: logs dir, default: None, ``abs path``
+            :param logger_name: name of the new logger, default: None, ``str``
+            :param handler_name: name of the file handler, default: None, ``str``
+            :param logger_log_level: log level of the logger, default: debug, ``str, int``
+            :param handler_log_level: log level of the file handler, default: error, ``str, int``
+            :param log_format: format of the logs line,
+                    default:'%(asctime)s:%(name)s:%(levelname)s:%(message)s', ``str``
         """
-        self.logger_name=logger_name
-        self.file_handler=None
-        self.stream_handler=None
-        self.log_dir=log_dir
-        self.file_handler_name=None
-
-        if logger_name is None:
-            self.logger_name=os.path.basename(__file__).replace('.py', '')
-        self.logger = logging.getLogger(self.logger_name)
+        self.logger = None
+        self.logger_name = None
+        self.file_handler = None
+        self.file_handler_name = None
+        self.stream_handler = None
 
         if log_dir is None:
-            self.log_dir = os.path.join\
+            log_dir = os.path.join\
                 (os.path.abspath
                  (os.path.join
                   (os.path.dirname
-                   (os.path.abspath(__file__)), os.pardir)), "logs")
+                   (os.path.abspath(__file__)), os.pardir)), LOGS_DIR)
         try:
-            if not os.path.exists(self.log_dir):
-                os.mkdir(self.log_dir)
+            if not os.path.exists(log_dir):
+                os.mkdir(log_dir)
+            if logger_name is None:
+                self.logger_name = os.path.basename(__file__).replace(PY_FILE_EXT, '')
+                self.logger = logging.getLogger(self.logger_name)
+            else:
+                self.logger_name = logger_name
+                self.logger = logging.getLogger(self.logger_name)
+            self.logger.setLevel(logger_log_level)
+            if handler_name is None:
+                handler_name = (os.path.basename(__file__).replace(PY_FILE_EXT, LOG_FILE_EXT))
+                self.file_handler_name = os.path.join \
+                    (log_dir, handler_name)
+            else:
+                self.file_handler_name = os.path.join \
+                    (log_dir, handler_name)
+            self.file_handler = logging.FileHandler(self.file_handler_name)
+            self.file_handler.setLevel(handler_log_level)
+            self.logger.addHandler(self.file_handler)
+            self.stream_handler = logging.StreamHandler()
+            self.logger.addHandler(self.stream_handler)
+            formatter = logging.Formatter(log_format)
+            self.file_handler.setFormatter(formatter)
+            self.stream_handler.setFormatter(formatter)
         except Exception as e:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
             print(traceback.extract_tb(sys.exc_info()[2]))
             raise e
 
-    def set_logger_log_level(self, level=logging.DEBUG):
+    def create_log_dir(self, log_dir=None):
+        """Create log dir if not already.
+            :param log_dir: logs directory path, ``abs path``
+        """
+        if log_dir is None:
+            log_dir = os.path.join\
+                (os.path.abspath
+                 (os.path.join
+                  (os.path.dirname
+                   (os.path.abspath(__file__)), os.pardir)), LOGS_DIR)
+        try:
+            if not os.path.exists(log_dir):
+                os.mkdir(log_dir)
+            return log_dir
+        except Exception as e:
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
+            print(traceback.extract_tb(sys.exc_info()[2]))
+            raise e
+
+    def get_logger(self, logger_name=None):
+        """Create new logger.
+            :param logger_name: logger name, ``str``
+        """
+        try:
+            if logger_name is None:
+                self.logger_name=os.path.basename(__file__).replace(PY_FILE_EXT, '')
+            else:
+                self.logger_name=logger_name
+            self.logger = logging.getLogger(self.logger_name)
+        except Exception as e:
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
+            print(traceback.extract_tb(sys.exc_info()[2]))
+            raise e
+
+    def set_logger_log_level(self, level=debug):
         """Set log level of the new logger.
             :param level: log level, default: debug, ``int``
         """
@@ -63,7 +143,7 @@ class Logger:
             print(traceback.extract_tb(sys.exc_info()[2]))
             raise e
 
-    def create_handler(self, handler_name=None, log_level=logging.DEBUG):
+    def create_handler(self, handler_name=None, log_level=debug):
         """Create file handler.
             :param handler_name: name of the handler, ``str``
             :param log_level: log level of the file handler, default:debug, ``str`` or ``int``
@@ -71,7 +151,7 @@ class Logger:
         try:
             if handler_name:
                 self.file_handler_name = os.path.join \
-                    (self.log_dir, handler_name)
+                    (self.create_log_dir(), handler_name)
                 self.file_handler = logging.FileHandler(self.file_handler_name)
                 self.file_handler.setLevel(log_level)
                 return self.file_handler
@@ -100,7 +180,7 @@ class Logger:
         """set the log format of the handler
             :param handler: name of the handler, ``obj``
         """
-        formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+        formatter = logging.Formatter(log_format)
         try:
             handler.setFormatter(formatter)
         except Exception as e:
@@ -187,87 +267,12 @@ class Logger:
             print(traceback.extract_tb(sys.exc_info()[2]))
             raise e
 
-    def logging_master(self, logger_name=None,
-                       log_dir=None,
-                       handler_name=None,
-                       logger_log_level=logging.DEBUG,
-                       handler_log_level=logging.ERROR,
-                       log_format='%(asctime)s:%(name)s:%(levelname)s:%(message)s'):
-        """Master Api for from logger class.
-            custom_logger = Logger('LoggerUtility')
-            custom_logger.set_logger_log_level(logging.DEBUG)
-            f_handler = custom_logger.create_handler('LoggerUtility.log', logging.ERROR)
-            s_handler = custom_logger.create_handler()
-            custom_logger.add_handler(f_handler)
-            custom_logger.add_handler(s_handler)
-            custom_logger.set_log_format(f_handler)
-            custom_logger.set_log_format(s_handler)
-        """
-        self.logger_name = logger_name
-        self.file_handler = None
-        self.stream_handler = None
-        self.log_dir = log_dir
-        self.file_handler_name = None
-
-        try:
-            if logger_name is None:
-                self.logger_name = os.path.basename(__file__).replace('.py', '')
-            self.logger = logging.getLogger(self.logger_name)
-            self.logger.setLevel(logger_log_level)
-        except Exception as e:
-            custom_logger.exception()
-            print(sys.exc_info()[0])
-            print(sys.exc_info()[1])
-            print(traceback.extract_tb(sys.exc_info()[2]))
-            raise e
-
-        if log_dir is None:
-            self.log_dir = os.path.join \
-                (os.path.abspath
-                 (os.path.join
-                  (os.path.dirname
-                   (os.path.abspath(__file__)), os.pardir)), "logs")
-        try:
-            if not os.path.exists(self.log_dir):
-                os.mkdir(self.log_dir)
-        except Exception as e:
-            print(sys.exc_info()[0])
-            print(sys.exc_info()[1])
-            print(traceback.extract_tb(sys.exc_info()[2]))
-            raise e
-
-        try:
-            if handler_name:
-                self.file_handler_name = os.path.join \
-                    (self.log_dir, handler_name)
-                self.file_handler = logging.FileHandler(self.file_handler_name)
-                self.file_handler.setLevel(handler_log_level)
-                self.logger.addHandler(self.file_handler)
-                self.stream_handler = logging.StreamHandler()
-                self.logger.addHandler(self.stream_handler)
-                formatter = logging.Formatter(log_format)
-                self.file_handler.setFormatter(formatter)
-                self.stream_handler.setFormatter(formatter)
-        except Exception as e:
-            print(sys.exc_info()[0])
-            print(sys.exc_info()[1])
-            print(traceback.extract_tb(sys.exc_info()[2]))
-            raise e
-
 
 if __name__ == '__main__':
-    custom_logger = Logger()
-    # custom_logger.set_logger_log_level(logging.DEBUG)
-    # f_handler = custom_logger.create_handler('LoggerUtility.log', logging.ERROR)
-    # s_handler = custom_logger.create_handler()
-    # custom_logger.add_handler(f_handler)
-    # custom_logger.add_handler(s_handler)
-    # custom_logger.set_log_format(f_handler)
-    # custom_logger.set_log_format(s_handler)
-    custom_logger.logging_master(handler_name='LoggerUtility.log')
-    custom_logger.debug("Hi, This is a test Debug message", "Hello")
-    custom_logger.info("Hi, This is an test Info message")
-    custom_logger.warning("Hi, This is a test Warning message")
-    custom_logger.error("Hi, This is a test Error message")
-    custom_logger.critical("Hi, This is a test Critical message")
-    custom_logger.exception("Hi, This is an test Exception message")
+    custom_logger_obj1 = Logger()
+    custom_logger_obj1.debug("Hi, This is a test Debug message", "Hello")
+    custom_logger_obj1.info("Hi, This is an test Info message")
+    custom_logger_obj1.warning("Hi, This is a test Warning message")
+    custom_logger_obj1.error("Hi, This is a test Error message")
+    custom_logger_obj1.critical("Hi, This is a test Critical message")
+    custom_logger_obj1.exception("Hi, This is an test Exception message")
