@@ -10,7 +10,28 @@ __status__ = "Development"
 # system imports
 from datetime import datetime
 import os
+import sys
 import zipfile
+
+# Appending root dir (test_automation), core_lib, constants and logs dirs to sys.path.
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.abspath(__file__)), os.pardir))))
+
+from constants.GenericConstants import *
+
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.abspath(__file__)), os.pardir)), CORE_LIB_DIR))
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.abspath(__file__)), os.pardir)), CONSTANTS_DIR))
 
 
 def zip_folder(folder_path, zip_name):
@@ -32,9 +53,10 @@ class ArchiveUtility:
             (os.path.abspath
              (os.path.join
               (os.path.dirname
-                (os.path.abspath(__file__)), os.pardir)), "archive")
+                (os.path.abspath(__file__)), os.pardir)), ARCHIVE_DIR)
         self.folder_name = str(run_name) + "_" + datetime.now().strftime("%m-%d-%Y_%H:%M:%S")
-        zip_folder(self.src, os.path.join(self.archive_dir, self.folder_name))
+        # zip_folder(self.src, os.path.join(self.archive_dir, self.folder_name))
+        zip_folder(self.src, os.path.join(self.dst, self.folder_name))
 
 
 if __name__ == '__main__':

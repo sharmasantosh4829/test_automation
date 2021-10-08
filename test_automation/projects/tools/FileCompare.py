@@ -19,14 +19,7 @@ import shutil
 import sys
 import re
 
-# Appending root dir (test_automation) and core_lib to sys.path so that it becomes visisble from command-line.
-sys.path.append(os.path.join\
-            (os.path.abspath
-             (os.path.join
-              (os.path.dirname
-              (os.path.dirname
-               (os.path.abspath(__file__))), os.pardir)), "core_lib"))
-
+# Appending root dir (test_automation) and core_lib to sys.path.
 sys.path.append(os.path.join\
             (os.path.abspath
              (os.path.join
@@ -34,35 +27,108 @@ sys.path.append(os.path.join\
               (os.path.dirname
                (os.path.abspath(__file__))), os.pardir))))
 
+from constants.GenericConstants import *
+
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+              (os.path.dirname
+               (os.path.abspath(__file__))), os.pardir)), CORE_LIB_DIR))
+sys.path.append(os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+              (os.path.dirname
+               (os.path.abspath(__file__))), os.pardir)), CONSTANTS_DIR))
+
 # core_lib imports
 from core_lib.ArchiveUtility import *
+from core_lib.Logger import *
 
 
 class FileCompare:
     """File comparison class file"""
     def __init__(self):
-        self.tmpDir = os.path.join\
+        logger_name = os.path.basename(__file__).split('.')[0]
+        handler_name = os.path.basename(__file__).replace(PY_FILE_EXT, LOG_FILE_EXT)
+        self.fc_log_dir = os.path.join\
             (os.path.abspath
              (os.path.join
               (os.path.dirname
               (os.path.dirname
-               (os.path.abspath(__file__))), os.pardir)), "temp")
-        if not os.path.exists(self.tmpDir):
-            os.mkdir(self.tmpDir)
+               (os.path.abspath(__file__))), os.pardir)), LOGS_DIR, "fc_logs")
+        if not os.path.exists(self.fc_log_dir):
+            os.mkdir(self.fc_log_dir)
 
-        self.archiveDir = os.path.join \
+        # initializing logger
+        self.fc_logger = Logger(log_dir=self.fc_log_dir,
+                                logger_name=logger_name,
+                                handler_name=handler_name)
+
+        self.fc_logger.info("Initializing archive dir")
+        self.artifacts_dir = os.path.join \
             (os.path.abspath
              (os.path.join
               (os.path.dirname
                (os.path.dirname
-                (os.path.abspath(__file__))), os.pardir)), "archive")
+                (os.path.abspath(__file__))), os.pardir)), ARTIFACTS_DIR)
+
+        self.fc_logger.info("Creating fc_tmp adn fc run artifacts dirs, if not already")
+        self.tmpDir = os.path.join \
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.dirname
+                (os.path.abspath(__file__))), os.pardir)), TEMP_DIR)
+        self.fc_tmpDir = os.path.join\
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+              (os.path.dirname
+               (os.path.abspath(__file__))), os.pardir)), TEMP_DIR, "fc_output")
+        self.fc_artifacts_dir = os.path.join \
+            (os.path.abspath
+             (os.path.join
+              (os.path.dirname
+               (os.path.dirname
+                (os.path.abspath(__file__))), os.pardir)), TEMP_DIR, logger_name)
+        try:
+            if not os.path.exists(self.fc_tmpDir):
+                os.mkdir(self.fc_tmpDir)
+            if not os.path.exists(self.fc_artifacts_dir):
+                os.mkdir(self.fc_artifacts_dir)
+        except BaseException:
+            self.fc_logger.error("Unable to create fc temp dir")
+            self.fc_logger.error(sys.exc_info()[0],
+                                      sys.exc_info()[1],
+                                      traceback.extract_tb(sys.exc_info()[2]))
+            self.fc_logger.exception(traceback.extract_tb(sys.exc_info()[2]))
+            raise
+
+        # self.fc_logger.info("Emptying temp dir, if not already")
+        # for filename in os.listdir(self.tmpDir):
+        #     file_path = os.path.join(self.tmpDir, filename)
+        #     try:
+        #         if os.path.isfile(file_path) or os.path.islink(file_path):
+        #             if not filename.startswith(INIT_FILE):
+        #                 os.unlink(file_path)
+        #         elif os.path.isdir(file_path):
+        #             shutil.rmtree(file_path)
+        #     except BaseException as e:
+        #         self.fc_logger.error('Failed to delete %s. Reason: %s' % (file_path, e))
+        #         self.fc_logger.error(sys.exc_info()[0],
+        #                              sys.exc_info()[1],
+        #                              traceback.extract_tb(sys.exc_info()[2]))
+        #         self.fc_logger.exception(traceback.extract_tb(sys.exc_info()[2]))
+        #         raise e
 
         sys.argv[1] = "--"
         file1 = sys.argv[2]
         file2 = sys.argv[3]
 
-        self.file1 = shutil.copy(file1, os.path.join(self.tmpDir))
-        self.file2 = shutil.copy(file2, os.path.join(self.tmpDir))
+        self.file1 = shutil.copy(file1, os.path.join(self.fc_tmpDir))
+        self.file2 = shutil.copy(file2, os.path.join(self.fc_tmpDir))
 
         self.file1_dict = self.load_properties(self.file1)
         self.file1_keys = self.file1_dict.keys()
@@ -155,8 +221,8 @@ class FileCompare:
             for line in self.lines:
                 fobj.write(line)
 
-        shutil.copy(self.file2, os.path.join(self.tmpDir, "copy.properties"))
-        self.file3 = os.path.join(self.tmpDir, "copy.properties")
+        shutil.copy(self.file2, os.path.join(self.fc_tmpDir, "copy.properties"))
+        self.file3 = os.path.join(self.fc_tmpDir, "copy.properties")
 
         self.lines = []
         with open(self.file3, "r") as fobj:
@@ -201,18 +267,18 @@ class FileCompare:
             for line in self.lines:
                 fobj.write(line)
 
-        ArchiveUtility(self.tmpDir, self.archiveDir, run_name="FileCompare")
+        self.fc_logger.info("Copying logs from logs dir to temp dir")
+        shutil.copytree(self.fc_log_dir, os.path.join(self.tmpDir, "fc_logs"))
 
-        for filename in os.listdir(self.tmpDir):
-            file_path = os.path.join(self.tmpDir, filename)
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    if not filename.startswith("__init__.py"):
-                        os.unlink(file_path)
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-            except Exception as e:
-                print('Failed to delete %s. Reason: %s' % (file_path, e))
+        self.fc_logger.info("Moving logs and output to fc artifacts dir")
+        shutil.move(os.path.join(self.tmpDir, "fc_logs"), self.fc_artifacts_dir)
+        shutil.move(self.fc_tmpDir, self.fc_artifacts_dir)
+
+        self.fc_logger.info("zipping fc artifacts and moving to artifacts dir")
+        ArchiveUtility(self.fc_artifacts_dir, self.artifacts_dir, run_name=logger_name)
+
+        self.fc_logger.info("Deleting fc artifacts dir from temp dir")
+        shutil.rmtree(self.fc_artifacts_dir)
 
     def load_properties(self, filepath, sep='=', comment_char='#'):
         """

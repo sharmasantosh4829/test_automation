@@ -26,6 +26,7 @@ log_format='%(asctime)s:%(name)s:%(levelname)s:%(message)s'
 # *** File Extensions *** #
 PY_FILE_EXT= ".py"
 LOG_FILE_EXT= ".log"
+INIT_FILE= "__init__.py"
 
 # *** File Encoding *** #
 UTF_ENCODING='utf8'
@@ -36,4 +37,7 @@ DEFAULT_TIMEOUT=30
 
 # *** Jenkins Constants *** #
 JENKINS_CONFIG_STR= 'jenkins_config'
+
+
+
 
